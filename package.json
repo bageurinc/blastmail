@@ -1,0 +1,12 @@
+{
+  "name": "smtp-server",
+  "version": "1.0.0",
+  "description": "SMTP server using smtp-server package",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "smtp-server": "^3.8.0"
+  }
+}
