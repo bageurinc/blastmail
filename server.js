@@ -1,7 +1,7 @@
 const { SMTPServer } = require("smtp-server");
 
 const server = new SMTPServer({
-  name: "mail.bageur-bablast.my.id",
+  name: "mail.bablast.id",
   onAuth(auth, session, callback) {
     if (auth.username === "user" && auth.password === "password") {
       callback(null, { user: "user" });
