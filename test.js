@@ -16,7 +16,7 @@ let transporter = nodemailer.createTransport({
 
 // Konfigurasi email yang akan dikirim
 let mailOptions = {
-  from: '"Your Name" <your-email@example.com>', // Pengirim
+  from: '"Your Name" <your-email@bablast.id>', // Pengirim
   to: "recipient@example.com", // Penerima
   subject: "Hello", // Subjek
   text: "Hello world?", // Teks biasa
