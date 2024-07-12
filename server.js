@@ -58,74 +58,97 @@ app.get("/generate-dkim/:domain", (req, res) => {
   });
 });
 
-const server = new SMTPServer({
-  name: "mail.bablast.id",
-  onAuth(auth, session, callback) {
-    if (auth.username === "user" && auth.password === "password") {
-      callback(null, { user: "user" });
-    } else {
-      callback(new Error("Authentication failed"));
-    }
-  },
-  onData(stream, session, callback) {
-    let email = "";
-    stream.on("data", (chunk) => {
-      email += chunk.toString();
-    });
-    stream.on("end", async () => {
-      console.log("Received email:", email);
-
-      const fromDomain = session.envelope.mailFrom.address.split("@")[1];
-      const dkimOptions = getDkimOptions(fromDomain);
-
-      if (!dkimOptions) {
-        return callback(
-          new Error(`DKIM configuration not found for domain: ${fromDomain}`)
-        );
+// Fungsi untuk memulai server SMTP
+const startServer = (port, secure) => {
+  const options = {
+    name: "mail.bablast.id",
+    onAuth(auth, session, callback) {
+      if (auth.username === "user" && auth.password === "password") {
+        callback(null, { user: "user" });
+      } else {
+        callback(new Error("Authentication failed"));
       }
-
-      // Kirim email menggunakan Nodemailer dengan DKIM
-      let transporter = nodemailer.createTransport({
-        host: "mail.bablast.id",
-        port: 25,
-        secure: false,
-        auth: {
-          user: "user",
-          pass: "password",
-        },
-        dkim: dkimOptions,
+    },
+    onData(stream, session, callback) {
+      let email = "";
+      stream.on("data", (chunk) => {
+        email += chunk.toString();
       });
+      stream.on("end", async () => {
+        console.log("Received email:", email);
 
-      let mailOptions = {
-        from: session.envelope.mailFrom.address,
-        to: session.envelope.rcptTo.map((rcpt) => rcpt.address).join(", "),
-        raw: email,
-      };
+        const fromDomain = session.envelope.mailFrom.address.split("@")[1];
+        const dkimOptions = getDkimOptions(fromDomain);
 
-      try {
-        let info = await transporter.sendMail(mailOptions);
-        console.log("Message sent: %s", info.messageId);
-        callback(null); // Accept the message
-      } catch (error) {
-        console.log(error);
-        callback(error);
-      }
-    });
-  },
-  onMailFrom(address, session, callback) {
-    console.log("Mail from:", address.address);
-    callback();
-  },
-  onRcptTo(address, session, callback) {
-    console.log("Mail to:", address.address);
-    callback();
-  },
-  logger: true,
-});
+        if (!dkimOptions) {
+          return callback(
+            new Error(`DKIM configuration not found for domain: ${fromDomain}`)
+          );
+        }
 
-server.listen(25, () => {
-  console.log("SMTP server is listening on port 25");
-});
+        // Kirim email menggunakan Nodemailer dengan DKIM
+        let transporter = nodemailer.createTransport({
+          host: "mail.bablast.id",
+          port: secure ? 465 : 587,
+          secure: secure, // true untuk port 465, false untuk port 587
+          auth: {
+            user: "user",
+            pass: "password",
+          },
+          dkim: dkimOptions,
+          tls: {
+            rejectUnauthorized: false,
+          },
+        });
+
+        let mailOptions = {
+          from: session.envelope.mailFrom.address,
+          to: session.envelope.rcptTo.map((rcpt) => rcpt.address).join(", "),
+          raw: email,
+        };
+
+        try {
+          let info = await transporter.sendMail(mailOptions);
+          console.log("Message sent: %s", info.messageId);
+          callback(null); // Accept the message
+        } catch (error) {
+          console.log(error);
+          callback(error);
+        }
+      });
+    },
+    onMailFrom(address, session, callback) {
+      console.log("Mail from:", address.address);
+      callback();
+    },
+    onRcptTo(address, session, callback) {
+      console.log("Mail to:", address.address);
+      callback();
+    },
+    logger: true,
+  };
+
+  if (secure) {
+    options.secure = true;
+    options.key = fs.readFileSync(
+      path.join(__dirname, "dkim", "server-key.pem")
+    );
+    options.cert = fs.readFileSync(
+      path.join(__dirname, "dkim", "server-cert.pem")
+    );
+  }
+
+  const server = new SMTPServer(options);
+
+  server.listen(port, () => {
+    console.log(`SMTP server is listening on port ${port}`);
+  });
+};
+
+// Mulai server SMTP pada berbagai port
+startServer(25, false); // Non-secure SMTP on port 25
+startServer(587, false); // STARTTLS SMTP on port 587
+startServer(465, true); // Secure SMTP on port 465
 
 // Jalankan server Express
 app.listen(3000, () => {

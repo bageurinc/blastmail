@@ -15,6 +15,8 @@ COPY . .
 
 # Expose the ports the app runs on
 EXPOSE 25
+EXPOSE 587
+EXPOSE 465
 EXPOSE 3000
 
 # Run the application
