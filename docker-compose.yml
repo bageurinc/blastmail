@@ -4,6 +4,8 @@ services:
     build: .
     ports:
       - "25:25"
+      - "587:587"
+      - "465:465"
       - "3000:3000"
     volumes:
       - ./dkim:/usr/src/app/dkim
