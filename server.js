@@ -62,6 +62,8 @@ app.get("/generate-dkim/:domain", (req, res) => {
 const startServer = (port, secure) => {
   const options = {
     name: "mail.bablast.id",
+    authOptional: true,
+    timeout: 10 * 60 * 1000, // Set timeout to 10 minutes
     onAuth(auth, session, callback) {
       if (auth.username === "user" && auth.password === "password") {
         callback(null, { user: "user" });
