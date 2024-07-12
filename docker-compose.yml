@@ -1,0 +1,11 @@
+version: '3'
+services:
+  smtp-server:
+    build: .
+    ports:
+      - "25:25"
+    volumes:
+      - ./dkim:/usr/src/app/dkim
+    environment:
+      - NODE_ENV=production
+    restart: always
