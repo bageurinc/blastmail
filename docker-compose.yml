@@ -1,14 +1,20 @@
-version: '3'
+version: '3.8'
 services:
-  smtp-server:
+  smtp:
     build: .
     ports:
-      - "25:25"
-      - "587:587"
       - "465:465"
-      - "3000:3000"
     volumes:
-      - ./dkim:/usr/src/app/dkim
+      - "/etc/letsencrypt:/etc/letsencrypt"
     environment:
-      - NODE_ENV=production
-    restart: always
+      - DOMAIN=mail.bablast.id
+    depends_on:
+      - certbot
+
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - "/etc/letsencrypt:/etc/letsencrypt"
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    environment:
+      - DOMAIN=mail.bablast.id

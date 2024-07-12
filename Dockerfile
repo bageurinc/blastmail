@@ -1,32 +1,20 @@
-# Use the official Node.js image as a base
-FROM node:18
+# Gunakan versi Node.js terbaru sebagai base image
+FROM node:latest
 
-# Create and change to the app directory
+# Tentukan direktori kerja
 WORKDIR /usr/src/app
 
-# Copy application dependency manifests to the container image
+# Salin package.json dan package-lock.json
 COPY package*.json ./
 
-# Install dependencies
+# Instal dependensi Node.js
 RUN npm install
 
-# Copy application code to the container image
+# Salin semua file sumber ke dalam container
 COPY . .
 
-# Copy the certificate generation script to the container image
-COPY generate-cert.sh /usr/src/app/
-
-# Make the script executable
-RUN chmod +x /usr/src/app/generate-cert.sh
-
-# Run the certificate generation script
-RUN /usr/src/app/generate-cert.sh
-
-# Expose the ports the app runs on
-EXPOSE 25
-EXPOSE 587
+# Buka port 465 untuk layanan SMTPS
 EXPOSE 465
-EXPOSE 3000
 
-# Run the application
-CMD [ "node", "server.js" ]
+# Jalankan server SMTP saat container dimulai
+CMD ["node", "smtpServer.js"]

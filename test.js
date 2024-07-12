@@ -1,33 +1,39 @@
 const nodemailer = require("nodemailer");
-
-// Buat transporter untuk mengirim email
+const dkim = require("nodemailer-dkim");
+const fs = require("fs");
 let transporter = nodemailer.createTransport({
   host: "mail.bablast.id",
   port: 465,
-  secure: true, // true untuk port 465, false untuk port lainnya
+  secure: true,
   auth: {
-    user: "username", // ganti dengan username yang Anda gunakan pada server SMTP
-    pass: "password", // ganti dengan password yang Anda gunakan pada server SMTP
+    user: "username", // Ganti dengan username Anda
+    pass: "password", // Ganti dengan password Anda
   },
   tls: {
     rejectUnauthorized: false,
   },
 });
 
-// Konfigurasi email yang akan dikirim
-let mailOptions = {
-  from: '"Your Name" <your-email@bablast.id>', // Pengirim
-  to: "404.ginda@gmail.com", // Penerima
-  subject: "Hello", // Subjek
-  text: "Hello world?", // Teks biasa
-  html: "<b>Hello world?</b>", // Teks HTML
-};
+transporter.use(
+  "stream",
+  dkim.signer({
+    domainName: "bablast.id",
+    keySelector: "default",
+    privateKey: fs.readFileSync("dkim_private.pem", "utf8"),
+  })
+);
 
-// Kirim email
-transporter.sendMail(mailOptions, (error, info) => {
-  if (error) {
-    return console.log(error);
+transporter.sendMail(
+  {
+    from: "info@bablast.id",
+    to: "404.ginda@gmail.com",
+    subject: "Hello with DKIM",
+    text: "This email is sent with DKIM signed.",
+  },
+  (error, info) => {
+    if (error) {
+      return console.log(error);
+    }
+    console.log("Message sent: %s", info.messageId);
   }
-  console.log("Message sent: %s", info.messageId);
-  console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
-});
+);
