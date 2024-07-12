@@ -17,4 +17,4 @@ COPY . .
 EXPOSE 465
 
 # Jalankan server SMTP saat container dimulai
-CMD ["node", "smtpServer.js"]
+CMD [ "npm", "start" ]
