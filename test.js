@@ -3,10 +3,10 @@ const nodemailer = require("nodemailer");
 // Buat transporter untuk mengirim email
 let transporter = nodemailer.createTransport({
   host: "mail.bablast.id",
-  port: 587,
-  secure: false, // true untuk port 465, false untuk port lainnya
+  port: 465,
+  secure: true, // true untuk port 465, false untuk port lainnya
   auth: {
-    user: "user", // ganti dengan username yang Anda gunakan pada server SMTP
+    user: "username", // ganti dengan username yang Anda gunakan pada server SMTP
     pass: "password", // ganti dengan password yang Anda gunakan pada server SMTP
   },
   tls: {
